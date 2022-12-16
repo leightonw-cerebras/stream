@@ -1,0 +1,8 @@
+.DS_Store
+**/out*
+**/*.log
+**/*.csv
+**/*.json
+**/cs_hio_config_files
+**/simfab_traces
+**/.DS_Store

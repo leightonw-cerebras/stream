@@ -1,0 +1,48 @@
+param stride_size : i16;
+param size : i16;
+
+const trace = @import_module("<debug>", .{.buffer_size = 100});
+const random = @import_module("<random>");
+
+const main_color : color = @get_color(0);
+const done_color : color = @get_color(1);
+
+var input1_data = @zeros([size] f16);
+var output_data = @zeros([size] f16);
+
+const input1_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{size / stride_size}
+                                         -> input1_data[i * stride_size]});
+const output_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{size / stride_size}
+                                         -> output_data[i * stride_size]});
+
+const dsd_ready  = @get_dsd(fabout_dsd, .{.fabric_color = done_color, .extent = 1});
+
+// Fill array with random numbers
+fn generate_random(input: *[size] f16) void {
+  var idx: i16 = 0;
+  while (idx < size) : (idx += 1) {
+    (input.*)[idx] = random.random_f16(-1.0, 1.0);
+  }
+}
+
+task pe_task() void {
+  generate_random(&input1_data);
+
+  trace.trace_timestamp();
+  @fmovh(output_dsd, input1_dsd); // stream copy
+  trace.trace_timestamp();
+
+  @fmovs(dsd_ready, 1.0); // signal completion
+}
+
+layout {
+  @set_rectangle(1, 1);
+  @set_tile_code(0, 0, "code.csl", .{ .stride_size = stride_size, .size = size });
+  @set_color_config(0, 0, done_color, .{ .routes = .{ .rx=.{RAMP}, .tx=.{EAST} }});
+}
+
+comptime {
+  @bind_task(pe_task, main_color);
+  @activate(main_color);
+}
+
