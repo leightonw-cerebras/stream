@@ -25,8 +25,8 @@ runner.add_output_array("ready", done_color, "E", ready, 0)
 # Proceed with simulation
 runner.connect_and_run()
 
-for x in range(1,3):
-  for y in range(1,3):
+for x in range(300,451,10):
+  for y in range(300,451,10):
     trace_output = csl_utils.read_trace(runner, x, y, 'trace')
     print("PE ID: ", x, " ", y)
     print("Cycle Start: ", trace_output[0])
