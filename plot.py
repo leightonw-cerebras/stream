@@ -25,31 +25,33 @@ args = parser.parse_args()
 
 test = args.test
 width = args.width
+cs2 = args.cs2
+bw = args.bw
 
 test_name = test + '_f' + str(width)
 
-if      test is 'copy'  and width is 16:
+if   test=='copy'  and width==16:
   theoretical_bw  = 6.8
   theoretical_ops = 4
-elif test is 'copy'  and width is 32:
+elif test=='copy'  and width==32:
   theoretical_bw  = 6.8
   theoretical_ops = 2
-elif test is 'scale' and width is 16:
+elif test=='scale' and width==16:
   theoretical_bw  = 6.8
   theoretical_ops = 4
-elif test is 'scale' and width is 32:
+elif test=='scale' and width==32:
   theoretical_bw  = 3.4
   theoretical_ops = 1
-elif test is 'add'   and width is 16:
+elif test=='add'   and width==16:
   theoretical_bw  = 6.8
   theoretical_ops = 4
-elif test is 'add'   and width is 32:
+elif test=='add'   and width==32:
   theoretical_bw  = 6.8
   theoretical_ops = 2
-elif test is 'triad' and width is 16:
+elif test=='triad' and width==16:
   theoretical_bw  = 6.8
   theoretical_ops = 4
-elif test is 'triad' and width is 32:
+elif test=='triad' and width==32:
   theoretical_bw  = 3.4
   theoretical_ops = 1
 
@@ -65,8 +67,8 @@ os.chdir(test_name)
 df = pd.read_csv(csv_name)
 
 size_kb_max = max(df['Size (kB)']) # Sets x-axis max
-bw_max = math.ceil(max(df['GB/s'])) # Find max measured bandwidth
-ops_max = math.ceil(max(df['Elems/Cycle'])) # Find max measured ops
+bw_max = math.ceil(theoretical_bw) # Sets y-axis max
+ops_max = theoretical_ops + 0.1    # sets y-axis max
 
 # Create unique ordered list of all strides
 strides = list(dict.fromkeys(df['Stride'].to_list()))
@@ -99,7 +101,7 @@ if bw:
 elif not bw:
   for stride in strides:
     size = df.loc[df['Stride'] == stride, 'Size (kB)']
-    ops = df.loc[df['Elems/Cycle'] == stride, 'Elems/Cycle']
+    ops = df.loc[df['Stride'] == stride, 'Elems/Cycle']
     plt.plot(size, ops, label=stride)
 
   plt.plot([0, size_kb_max], [theoretical_ops, theoretical_ops], \
