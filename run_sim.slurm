@@ -3,11 +3,10 @@
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 #-#-#-# SLURM Commands #-#-#-#-#
 
-#SBATCH --job-name=csSTREAM                        # Job name
+#SBATCH --job-name=simSTREAM                       # Job name
 #SBATCH --mail-type=END,FAIL                       # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=leighton.wilson@cerebras.net   # Where to send mail
 
-#SBATCH --gres=cs:cerebras:1
 #SBATCH --cpus-per-task=28
 #SBATCH --time=12:00:00
 
@@ -29,6 +28,6 @@ export PATH=$PATH:$SDK_INSTALL_PATH
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 #-#-#-#-# Compile and Run #-#-#-#-#
 
-./sweep.py --test copy --width 16 --tile 1 --cs2
+./sweep.py --test copy --width 16 --tile 1
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
