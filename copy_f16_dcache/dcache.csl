@@ -1,0 +1,29 @@
+///////////////////////// HW AND CTX SWITCH CONSTANTS //////////////////////////
+
+const word_size = 2;
+
+// Converts from word addresses to byte addresses.
+fn get_byte_addr(word_addr : u16) u16 {
+    return word_addr * word_size;
+}
+
+// HW ADDRESSES FOR FYN
+const DCACHE_BASE_ADDR : u16 = get_byte_addr(0x7f80);
+
+/////////////////////////////// DCACHE FUNC ////////////////////////////////////
+
+fn dcache_addr(word_offset: u16) *f16 {
+    // Stack addresses are word-addressed, while CSL is expecting
+    // byte-addressed.
+    return @bitcast(*f16, DCACHE_BASE_ADDR + (word_offset * word_size));
+}
+
+// Wrapper around @set_dsd_base_addr to point DSDs into the dcache region.
+fn set_dsd_base_to_dcache_addr(dsd: mem1d_dsd, word_offset: u16) mem1d_dsd {
+  // NOTE: The cast to *[1]u16 here is sort of a type system-level fiction. CSL
+  // does not actually care about the size of the array, or its base type. So
+  // we can use this function regardless of the type of the tensor we are
+  // pointing at.
+  const base_ptr = @ptrcast(*[1]u16, dcache_addr(word_offset));
+  return @set_dsd_base_addr(dsd, base_ptr.*);
+}
