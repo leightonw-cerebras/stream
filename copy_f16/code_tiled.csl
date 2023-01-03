@@ -8,6 +8,8 @@ const random = @import_module("<random>");
 const main_color : color = @get_color(0);
 const done_color : color = @get_color(1);
 
+const loop_iter : comptime_int = 1000;
+
 var input1_data = @zeros([size] f16);
 var output_data = @zeros([size] f16);
 
@@ -22,7 +24,7 @@ task pe_task() void {
 
   var idx: i16 = 0;
   trace.trace_timestamp();
-  while (idx < 10000) : (idx += 1) {
+  while (idx < loop_iter) : (idx += 1) {
     @fmovh(output_dsd, input1_dsd); // stream copy
   }
   trace.trace_timestamp();

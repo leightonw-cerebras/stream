@@ -27,6 +27,8 @@ runner.connect_and_run()
 
 for x in range(1,2,1):
   for y in range(1,2,1):
+#for x in range(300,451,10):
+#  for y in range(300,451,10):
     trace_output = csl_utils.read_trace(runner, x, y, 'trace')
     print("PE ID: ", x, " ", y)
     print("Cycle Start: ", trace_output[0])

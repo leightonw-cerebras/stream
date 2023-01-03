@@ -4,20 +4,23 @@ const dcache = @import_module("dcache.csl");
 const main_color : color = @get_color(0);
 const done_color : color = @get_color(1);
 
-var dummy = @zeros([8] f16);
+const size : comptime_int = 8;
+const loop_iter : comptime_int = 1000;
 
-const input1_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{8} -> dummy[i]});
-const output_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{8} -> dummy[i]});
+var dummy = @zeros([size] f16);
+
+const input1_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{size} -> dummy[i]});
+const output_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{size} -> dummy[i]});
 
 const dsd_ready  = @get_dsd(fabout_dsd, .{.fabric_color = done_color, .extent = 1});
 
 
 task pe_task() void {
   dcache.set_dsd_base_to_dcache_addr(input1_dsd, 0);
-  dcache.set_dsd_base_to_dcache_addr(output_dsd, 8);
+  dcache.set_dsd_base_to_dcache_addr(output_dsd, size);
 
   trace.trace_timestamp();
-  for (comptime @range(i16, 1000)) |i| {
+  for (comptime @range(i16, loop_iter)) |i| {
     @fmovh(output_dsd, input1_dsd); // stream copy
   }
   trace.trace_timestamp();
