@@ -1,0 +1,38 @@
+const trace = @import_module("<debug>", .{.buffer_size = 100});
+
+const main_color : color = @get_color(0);
+const done_color : color = @get_color(1);
+
+const size : comptime_int = 8;
+const loop_iter : comptime_int = 1000;
+
+var dummy1 = @zeros([size] f16);
+var dummy2 = @zeros([size] f16);
+
+const input1_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{size} -> dummy1[i]});
+const output_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{size} -> dummy2[i]});
+
+const dsd_ready  = @get_dsd(fabout_dsd, .{.fabric_color = done_color, .extent = 1});
+
+
+task pe_task() void {
+  trace.trace_timestamp();
+  for (comptime @range(i16, loop_iter)) |i| {
+    @fmovh(output_dsd, input1_dsd); // stream copy
+  }
+  trace.trace_timestamp();
+
+  @fmovs(dsd_ready, 1.0); // signal completion
+}
+
+layout {
+  @set_rectangle(1, 1);
+  @set_tile_code(0, 0, "code-banks.csl");
+  @set_color_config(0, 0, done_color, .{ .routes = .{ .rx=.{RAMP}, .tx=.{EAST} }});
+}
+
+comptime {
+  @bind_task(pe_task, main_color);
+  @activate(main_color);
+}
+
