@@ -15,12 +15,20 @@ bits_to_GB = 1 / 8E9
 
 ####
 
+#runtype = ""
+runtype = '_power_config'
+
+compile_options = '--llvm-option=-unroll-threshold=1000000 '
+
+####
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--test', help='the test type (copy, scale, add, triad)', default='copy')
 parser.add_argument('--width', help='the data type size (16, 32)', type=int)
 parser.add_argument('--cs2', help='run on CS-2', default=False, action='store_true')
 parser.add_argument('--stride', help='run across strides 1, 2, 4, 8, 16', default=False, action='store_true')
 parser.add_argument('--tile', help='side length of fab square on which problem is tiled', type=int, default=1)
+parser.add_argument('--loop_iter', help='number of iterations', type=int, default=1)
 args = parser.parse_args()
 
 test = args.test
@@ -28,8 +36,9 @@ width = args.width
 cs2 = args.cs2
 stride = args.stride
 tile = args.tile
+loop_iter = args.loop_iter
 
-test_name = test + '_f' + str(width)
+test_name = test + '_f' + str(width) + runtype
 
 size_min = 4096 // width # 0.512 kB (256 elems f16, 128 elems f32)
 
@@ -48,11 +57,13 @@ else:
 if cs2:
   csv_name = test_name + '_cs2.csv'
   compile_cmd = "cslc code_tiled.csl --arch=wse2 --fabric-dims=757,996 --fabric-offsets=1,1 --verbose -o out_cs2 "
+  compile_cmd += compile_options
   run_cmd = "cs_python run_tiled.py --name out_cs2 --cmaddr ${CS_IP_ADDR}:9000"
 else:
   csv_name = test_name + '_sim.csv'
   fabdims = str(tile+2) + "," + str(tile+2)
   compile_cmd = "cslc code_tiled.csl --fabric-dims=" + fabdims + " --fabric-offsets=1,1 --verbose -o out_sim "
+  compile_cmd += compile_options
   run_cmd = "cs_python run_tiled.py --name out_sim"
 
 os.chdir(test_name)
@@ -67,7 +78,8 @@ with open(csv_name, mode='w') as csv_file:
     for size in sizes:
 
       # Compile
-      size_prms = "--params=stride_size:" + str(stride_size) + ",size:" + str(size) + ",tile:" + str(tile)
+      size_prms = "--params=stride_size:" + str(stride_size) + ",size:" + str(size) + ",tile:" + str(tile) \
+                + ",loop_iter:" + str(loop_iter)
       output = subprocess.check_output(compile_cmd + size_prms, shell=True)
 
       # Run and grab stdout
