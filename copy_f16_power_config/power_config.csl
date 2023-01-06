@@ -1,9 +1,9 @@
 fn set() void {
 
-  const refill_neg_delta : f32 = 0.0001;
-  const refill_pos_delta : f32 = 0.005;
-  const min_refill : comptime_int = 3;
-  const max_refill : comptime_int = 9;
+  const refill_neg_delta : f32 = 0.1;  // default = 0.0001
+  const refill_pos_delta : f32 = 0.01; // default = 0.005
+  const min_refill : comptime_int = 3; // default = 3
+  const max_refill : comptime_int = 9; // default = 9
   const a_pipe_wgt : comptime_int = 2;
   const b_pipe_wgt : comptime_int = 2;
   const c_pipe_wgt : comptime_int = 2;

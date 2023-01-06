@@ -30,6 +30,6 @@ export PATH=$PATH:$SDK_INSTALL_PATH
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 #-#-#-#-# Compile and Run #-#-#-#-#
 
-./sweep.py --test copy --width 16 --tile 1 --loop_iter 100
+./sweep.py --test copy --width 16 --tile 1 --loop_iter 1
 
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
