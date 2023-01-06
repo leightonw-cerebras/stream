@@ -1,0 +1,59 @@
+fn set() void {
+
+  const refill_neg_delta : f32 = 0.0001;  // default = 0.0001
+  const refill_pos_delta : f32 = 0.005; // default = 0.005
+  const min_refill : comptime_int = 3; // default = 3
+  const max_refill : comptime_int = 9; // default = 9
+  const a_pipe_wgt : comptime_int = 2;
+  const b_pipe_wgt : comptime_int = 2;
+  const c_pipe_wgt : comptime_int = 2;
+  const d_pipe_wgt : comptime_int = 2;
+  const max_creds  : comptime_int = 16;
+  const fab_wgt : f32 = 0.375;
+
+  // self.fw.do_poke_single((tile.x, tile.y),                      \
+  //                        power_cfg_address['refill_bound'],     \
+  //                        (power_cfg['min_refill'] << 8) << 4 |  \
+  //                        (power_cfg['max_refill'] << 4))
+  // self.fw.do_poke_single((tile.x, tile.y),                      \
+  //                        power_cfg_address['refill_neg_delta'], \
+  //                        int(power_cfg['refill_neg_delta'] *    \
+  //                        (1 << 16)))
+  // self.fw.do_poke_single((tile.x, tile.y),                      \
+  //                        power_cfg_address['refill_pos_delta'], \
+  //                        int(power_cfg['refill_pos_delta'] *    
+  //                        (1 << 16)))
+  // self.fw.do_poke_single((tile.x, tile.y),                      \
+  //                        power_cfg_address['max_creds'],        \
+  //                        power_cfg['max_creds'])
+  // self.fw.do_poke_single((tile.x, tile.y),                      \
+  //                        power_cfg_address['weights'],          \
+  //                        ((power_cfg['d_pipe_wgt']) << 13) |    \
+  //                        ((power_cfg['c_pipe_wgt']) << 10) |    \
+  //                        ((power_cfg['b_pipe_wgt']) << 7) |     \
+  //                        ((power_cfg['a_pipe_wgt']) << 4) |     \
+  //                        int((power_cfg['fab_wgt']) * 16))
+  // self.fw.do_poke_single((tile.x, tile.y),                      \
+  //                        power_cfg_address['master_power_ctrl'],\
+  //                        0x1)
+
+  // refill bound
+  @set_config(0x7021, (min_refill << 8) << 4 | (max_refill << 4));
+
+  // refill neg delta
+  @set_config(0x7023, @as(i16, refill_neg_delta * @as(f32, 1 << 16)));
+
+  // refill pos delta
+  @set_config(0x7022, @as(i16, refill_pos_delta * @as(f32, 1 << 16)));
+
+  // max creds
+  @set_config(0x7027, max_creds);
+
+  // weights
+  @set_config(0x7028, (d_pipe_wgt << 13) | (c_pipe_wgt << 10) |
+                      (b_pipe_wgt << 7)  | (a_pipe_wgt << 4)  |
+                      @as(i16, fab_wgt * @as(f32, 16)));
+
+  // master power ctrl
+  @set_config(0x7020, 0x1);
+}

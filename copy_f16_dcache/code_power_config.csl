@@ -1,12 +1,12 @@
 const trace = @import_module("<debug>", .{.buffer_size = 100});
 const dcache = @import_module("dcache.csl");
-const power_config = @import_module("../copy_f16_power_config/power_config.csl");
+const power_config = @import_module("power_config.csl");
 
 const main_color : color = @get_color(0);
 const done_color : color = @get_color(1);
 
-const size : comptime_int = 8;
-const loop_iter : comptime_int = 1000;
+const size : comptime_int = 1;
+const loop_iter : comptime_int = 1;
 
 var dummy = @zeros([size] f16);
 
@@ -31,12 +31,13 @@ task pe_task() void {
 
 layout {
   @set_rectangle(1, 1);
-  @set_tile_code(0, 0, "code.csl");
+  @set_tile_code(0, 0, "code_power_config.csl");
   @set_color_config(0, 0, done_color, .{ .routes = .{ .rx=.{RAMP}, .tx=.{EAST} }});
 }
 
 comptime {
   @bind_task(pe_task, main_color);
   @activate(main_color);
+  power_config.set();
 }
 

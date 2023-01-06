@@ -27,7 +27,7 @@ task pe_task() void {
 
 layout {
   @set_rectangle(1, 1);
-  @set_tile_code(0, 0, "code-banks.csl");
+  @set_tile_code(0, 0, "code_banks.csl");
   @set_color_config(0, 0, done_color, .{ .routes = .{ .rx=.{RAMP}, .tx=.{EAST} }});
 }
 
