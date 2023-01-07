@@ -1,0 +1,47 @@
+const trace = @import_module("<debug>", .{.buffer_size = 100});
+const random = @import_module("<random>");
+
+const main_color : color = @get_color(0);
+const done_color : color = @get_color(1);
+
+const dsd_ready  = @get_dsd(fabout_dsd, .{.fabric_color = done_color, .extent = 1});
+
+task pe_task() void {
+  @fmovs(dsd_ready, 1.0); // signal completion
+}
+
+layout {
+  @set_rectangle(1, 1);
+  @set_tile_code(0, 0, "code_read_config.csl");
+  @set_color_config(0, 0, done_color, .{ .routes = .{ .rx=.{RAMP}, .tx=.{EAST} }});
+}
+
+comptime {
+  @bind_task(pe_task, main_color);
+  @activate(main_color);
+
+  // refill bound
+  const refill_bound = @get_config(0x7021);
+  trace.trace(refill_bound);
+
+  // refill neg delta
+  const refill_neg_delta = @get_config(0x7023);
+  trace.trace(refill_neg_delta);
+
+  // refill pos delta
+  const refill_pos_delta = @get_config(0x7022);
+  trace.trace(refill_pos_delta);
+
+  // max creds
+  const max_creds = @get_config(0x7027);
+  trace.trace(max_creds);
+
+  // weights
+  const weights = @get_config(0x7028);
+  trace.trace(weights);
+
+  // master power ctrl
+  const master_power_ctrl = @get_config(0x7020);
+  trace.trace(master_power_ctrl);
+}
+
