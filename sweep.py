@@ -24,9 +24,12 @@ height = int(h)
 
 test_name = test + '_f' + str(data_width)
 
-min_size = 4096//data_width
-max_size = 65536//data_width
-sizes = range(min_size, max_size+1, min_size)
+#min_size = 4096//data_width
+#max_size = 65536//data_width
+#sizes = range(min_size, max_size+1, min_size)
+
+sizes = np.array([512, 1024, 2048, 4096, 8192, 16384, 32768, 65536], dtype=np.uint32)
+sizes = sizes // data_width
 
 if stride:
   strides = {1, 2, 4, 8, 16}
@@ -35,7 +38,7 @@ else:
 
 if cmaddr:
   csv_name = test_name + '_cs2.csv'
-  compile_cmd =  "cslc {test_name}/layout.csl --arch=wse2 --fabric-dims=757,996 --fabric-offsets=4,1 --verbose -o out_cs2 " \
+  compile_cmd = f"cslc {test_name}/layout.csl --arch=wse2 --fabric-dims=757,996 --fabric-offsets=4,1 --verbose -o out_cs2 " \
               + f"--params=width:{width},height:{height} --memcpy --channels=1 "
   run_cmd = f"cs_python run.py --name out_cs2 --test {test} --data-width {data_width} --cmaddr {cmaddr} "
 else:
