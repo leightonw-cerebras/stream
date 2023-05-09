@@ -7,6 +7,24 @@ const done_color : color = @get_color(1);
 const dsd_ready  = @get_dsd(fabout_dsd, .{.fabric_color = done_color, .extent = 1});
 
 task pe_task() void {
+  const refill_bound = @bitcast(*i32, @as(u16, 0x7021)).*;
+  trace.trace(refill_bound);
+
+  const refill_neg_delta = @bitcast(*i32, @as(u16, 0x7023)).*;
+  trace.trace(refill_neg_delta);
+
+  const refill_pos_delta = @bitcast(*i32, @as(u16, 0x7022)).*;
+  trace.trace(refill_pos_delta);
+
+  const max_creds = @bitcast(*i32, @as(u16, 0x7027)).*;
+  trace.trace(max_creds);
+
+  const weights = @bitcast(*i32, @as(u16, 0x7028)).*;
+  trace.trace(weights);
+
+  const master_power_ctrl = @bitcast(*i32, @as(u16, 0x7020)).*;
+  trace.trace(master_power_ctrl);
+
   @fmovs(dsd_ready, 1.0); // signal completion
 }
 
