@@ -1,0 +1,27 @@
+param width: u16;
+param height: u16;
+
+param stride: u16;
+param size: u16;
+
+const memcpy = @import_module("<memcpy_multi/get_params>", .{
+  .width = width,
+  .height = height 
+});
+
+layout {
+  @set_rectangle(width, height); 
+
+  for (@range(u16, width)) |px| {
+    const memcpy_params = memcpy.get_params(px);
+
+    for (@range(u16, height)) |py| {
+      @set_tile_code(px, py, "pe_program.csl", .{ .memcpy_params = memcpy_params,
+        .stride = stride, .size = size }); 
+    }   
+  }
+
+  // export symbol names
+  @export_name("maxmin_time", [*]f32, true);
+  @export_name("compute", fn()void);
+}

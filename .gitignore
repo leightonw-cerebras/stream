@@ -5,3 +5,4 @@
 **/cs_hio_config_files
 **/simfab_traces
 **/.DS_Store
+*.pyc

@@ -1,0 +1,80 @@
+param memcpy_params: comptime_struct;
+
+param stride: u16;
+param size: u16;
+
+const elems_accessed: u16 = size / stride;
+
+const LAUNCH: color = @get_color(8);  // a routable color for RPC
+const EXIT: color = @get_color(9);    // entrypoint to leave RPC
+
+const sys_mod = @import_module("<memcpy_multi/memcpy>", @concat_structs(memcpy_params, .{
+  .LAUNCH = LAUNCH,
+  .data_type = f32
+}));
+
+const timestamp = @import_module("<time>");
+var tsc_end_buf = @zeros([timestamp.tsc_size_words]u16);
+var tsc_start_buf = @zeros([timestamp.tsc_size_words]u16);
+
+var timer_buf = @zeros([3]f32);
+var ptr_timer_buf: [*]f32 = &timer_buf;
+
+var src0_arr: [size+0]f16 align(16) = @zeros([size+0]f16);
+var src1_arr: [size+3]f16 align(16) = @zeros([size+3]f16);
+var dest_arr: [size+6]f16 align(16) = @zeros([size+6]f16);
+
+const src0_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{elems_accessed} -> src0_arr[i * @as(i16, stride) + 0]});
+const src1_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{elems_accessed} -> src1_arr[i * @as(i16, stride) + 3]});
+const dest_dsd = @get_dsd(mem1d_dsd, .{.tensor_access = |i|{elems_accessed} -> dest_arr[i * @as(i16, stride) + 6]});
+
+
+fn compute() void {
+
+  // warm up wafer
+  for (@range(u16, 100)) |iter| {
+    @faddh(dest_dsd, src0_dsd, src1_dsd);
+  }
+
+  // time iter iterations
+  timestamp.enable_tsc();
+  timestamp.get_timestamp(&tsc_start_buf);
+
+  @faddh(dest_dsd, src0_dsd, src1_dsd);
+
+  timestamp.get_timestamp(&tsc_end_buf);
+  timestamp.disable_tsc();
+
+  var lo_: u16 = 0;
+  var hi_: u16 = 0;
+  var word: u32 = 0;
+
+  lo_ = tsc_start_buf[0];
+  hi_ = tsc_start_buf[1];
+  timer_buf[0] = @bitcast(f32, (@as(u32,hi_) << @as(u16,16)) | @as(u32, lo_));
+
+  lo_ = tsc_start_buf[2];
+  hi_ = tsc_end_buf[0];
+  timer_buf[1] = @bitcast(f32, (@as(u32,hi_) << @as(u16,16)) | @as(u32, lo_));
+
+  lo_ = tsc_end_buf[1];
+  hi_ = tsc_end_buf[2];
+  timer_buf[2] = @bitcast(f32, (@as(u32,hi_) << @as(u16,16)) | @as(u32, lo_));
+
+  @activate(EXIT);
+}
+
+
+task f_exit() void {
+  // the user must unblock cmd color for every PE
+  sys_mod.unblock_cmd_stream();
+}
+
+
+comptime {
+  @bind_task(f_exit, EXIT);
+
+  @export_symbol(ptr_timer_buf, "maxmin_time");
+  @export_symbol(compute);
+  @rpc(LAUNCH);
+}
